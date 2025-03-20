@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+    <div id="loading" class="loading hidden"></div>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-96">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Login</h2>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 dark:text-gray-300 mb-2">Username</label>
+                    <input type="text" id="username" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                    <input type="password" id="password" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden">
+        <nav class="bg-white dark:bg-gray-800 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="text-xl font-bold text-gray-800 dark:text-white">Job Management System</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="userDisplay" class="text-gray-700 dark:text-gray-300"></span>
+                        <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                            <i class="bi bi-moon-fill dark:text-white"></i>
+                        </button>
+                        <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto px-4 py-8">
+            <!-- Admin Panel Status Indicator - For debugging -->
+            <div id="adminPanelStatus" class="mb-4 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg text-blue-800 dark:text-blue-200 hidden">
+                <p>Admin panel is active for <span id="adminRoleDisplay"></span></p>
+            </div>
+            
+            <!-- Navigation Menu - Only for admin and subadmin -->
+            <div id="adminNavigation" class="mb-6 hidden">
+                <nav class="bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm">
+                    <ul class="flex flex-wrap">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active" data-page="dashboard">
+                                <i class="bi bi-speedometer2 mr-2"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-page="user-product">
+                                <i class="bi bi-people mr-2"></i>User & Product
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-page="job-management">
+                                <i class="bi bi-plus-circle mr-2"></i>Add Job
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-page="job-listings">
+                                <i class="bi bi-list-check mr-2"></i>Job Listings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-page="payments">
+                                <i class="bi bi-cash-coin mr-2"></i>Payments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-page="reports">
+                                <i class="bi bi-file-earmark-bar-graph mr-2"></i>Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-page="settings">
+                                <i class="bi bi-gear mr-2"></i>Settings
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page-section active">
+                <!-- Admin Dashboard Overview - Only visible to admin and subadmin -->
+                <div id="adminDashboard" class="hidden mb-8">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Dashboard Overview</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="p-4 bg-blue-100 dark:bg-blue-900 rounded">
+                                <h4 class="font-bold text-blue-800 dark:text-blue-200">Total Users</h4>
+                                <p id="totalUsers" class="text-2xl font-bold text-blue-600 dark:text-blue-300">0</p>
+                            </div>
+                            <div class="p-4 bg-green-100 dark:bg-green-900 rounded">
+                                <h4 class="font-bold text-green-800 dark:text-green-200">Total Products</h4>
+                                <p id="totalProducts" class="text-2xl font-bold text-green-600 dark:text-green-300">0</p>
+                            </div>
+                            <div class="p-4 bg-purple-100 dark:bg-purple-900 rounded">
+                                <h4 class="font-bold text-purple-800 dark:text-purple-200">Total Jobs</h4>
+                                <p id="totalJobs" class="text-2xl font-bold text-purple-600 dark:text-purple-300">0</p>
+                            </div>
+                            <div class="p-4 bg-yellow-100 dark:bg-yellow-900 rounded">
+                                <h4 class="font-bold text-yellow-800 dark:text-yellow-200">Total Payments</h4>
+                                <p id="dashboardTotalPayments" class="text-2xl font-bold text-yellow-600 dark:text-yellow-300">0</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Top Vendors Chart -->
+                        <div class="mt-6">
+                            <h4 class="font-bold text-gray-800 dark:text-white mb-2">Top Vendors by Jobs</h4>
+                            <div id="topVendorsChart" class="h-48 bg-gray-100 dark:bg-gray-700 rounded p-4">
+                                <!-- Vendor bars will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Monthly Summary -->
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Monthly Summary</h3>
+                        <div id="monthlySummary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="p-4 bg-blue-100 dark:bg-blue-900 rounded">
+                                <h4 class="font-bold text-blue-800 dark:text-blue-200">Total Earnings</h4>
+                                <p id="totalEarnings" class="text-2xl font-bold text-blue-600 dark:text-blue-300">₹0</p>
+                            </div>
+                            <div class="p-4 bg-green-100 dark:bg-green-900 rounded">
+                                <h4 class="font-bold text-green-800 dark:text-green-200">Payments Made</h4>
+                                <p id="totalPayments" class="text-2xl font-bold text-green-600 dark:text-green-300">₹0</p>
+                            </div>
+                            <div class="p-4 bg-purple-100 dark:bg-purple-900 rounded">
+                                <h4 class="font-bold text-purple-800 dark:text-purple-200">Balance</h4>
+                                <p id="balance" class="text-2xl font-bold text-purple-600 dark:text-purple-300">₹0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User & Product Management Page -->
+            <div id="user-product-page" class="page-section">
+                <!-- Admin Controls -->
+                <div id="adminControls" class="hidden mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- User Management -->
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">User Management</h3>
+                            <form id="userForm" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input type="text" placeholder="Username" id="newUsername" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    <input type="password" placeholder="Password" id="newPassword" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    <select id="userRole" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        <option value="">Select Role</option>
+                                        <option value="vendor">Vendor</option>
+                                        <option value="subadmin">Sub Admin</option>
+                                    </select>
+                                    <button type="submit" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add User</button>
+                                </div>
+                                <div id="userFormErrors" class="text-red-500 mt-2"></div>
+                            </form>
+                            
+                            <!-- Users List -->
+                            <div class="mt-4">
+                                <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Current Users</h4>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full table-auto">
+                                        <thead>
+                                            <tr class="bg-gray-100 dark:bg-gray-700">
+                                                <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Username</th>
+                                                <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Role</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="usersList"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Management -->
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Product Management</h3>
+                            <form id="productForm" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input type="text" placeholder="Product Name" id="productName" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    <input type="number" placeholder="Rate (₹)" id="productRate" step="0.01" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    <button type="submit" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add Product</button>
+                                </div>
+                            </form>
+                            
+                            <!-- Products List -->
+                            <div class="mt-4">
+                                <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Current Products</h4>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full table-auto">
+                                        <thead>
+                                            <tr class="bg-gray-100 dark:bg-gray-700">
+                                                <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Product Name</th>
+                                                <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Rate</th>
+                                                <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="productsList"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Job Management Page -->
+            <div id="job-management-page" class="page-section">
+                <!-- Job Management -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Job Management</h3>
+                    <form id="jobForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="date" id="jobDate" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <input type="text" placeholder="Client Name" id="clientName" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <select id="vendorSelect" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="">Select vendor</option>
+                            </select>
+                            <select id="productSelect" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="">Select Product</option>
+                            </select>
+                            <input type="number" placeholder="Quantity" id="quantity" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <input type="text" placeholder="Description" id="description" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        </div>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Job</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Job Listings Page -->
+            <div id="job-listings-page" class="page-section">
+                <!-- Job Listings -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white">Job Listings</h3>
+                        <input type="month" id="monthFilter" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto">
+                            <thead>
+                                <tr class="bg-gray-100 dark:bg-gray-700">
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Date</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Client</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Product</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Description</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Quantity</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Rate</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Total</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobsList"></tbody>
+                        </table>
+                    </div>
+                    <div id="jobsPagination" class="pagination"></div>
+                </div>
+            </div>
+            
+            <!-- Payments Page -->
+            <div id="payments-page" class="page-section">
+                <!-- Partial Payments -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Partial Payments</h3>
+                    <form id="paymentForm" class="space-y-4 admin-only">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <select id="paymentvendor" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="">Select vendor</option>
+                            </select>
+                            <input type="number" placeholder="Amount" id="paymentAmount" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <input type="date" id="paymentDate" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        </div>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Payment</button>
+                    </form>
+                    <div class="mt-4 overflow-x-auto">
+                        <table class="min-w-full table-auto">
+                            <thead>
+                                <tr class="bg-gray-100 dark:bg-gray-700">
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Date</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Amount</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-white">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsList"></tbody>
+                        </table>
+                    </div>
+                    <div id="paymentsPagination" class="pagination"></div>
+                </div>
+            </div>
+            
+            <!-- Reports Page -->
+            <div id="reports-page" class="page-section">
+                <!-- Reports Section - Admin Only -->
+                <div id="reportsSection" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mt-8 admin-only">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Generate Reports</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Date Range Report -->
+                        <div class="border dark:border-gray-700 rounded-lg p-4">
+                            <h4 class="font-bold text-gray-800 dark:text-white mb-3">Date Range Report</h4>
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
+                                        <input type="date" id="reportStartDate" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-1">End Date</label>
+                                        <input type="date" id="reportEndDate" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    </div>
+                                </div>
+                                <button onclick="generateDateRangeReport()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                                    Generate Report
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Vendor Report -->
+                        <div class="border dark:border-gray-700 rounded-lg p-4">
+                            <h4 class="font-bold text-gray-800 dark:text-white mb-3">Vendor Report</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-gray-700 dark:text-gray-300 mb-1">Select Vendor</label>
+                                    <select id="reportVendor" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        <option value="">All Vendors</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 mb-1">Month</label>
+                                        <input type="month" id="reportVendorMonth" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    </div>
+                                </div>
+                                <button onclick="generateVendorReport()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                                    Generate Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Report Output -->
+                    <div id="reportOutput" class="mt-6 hidden">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-bold text-gray-800 dark:text-white">Report Results</h4>
+                            <div>
+                                <button onclick="printReport()" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-3 py-1 rounded mr-2 hover:bg-gray-300 dark:hover:bg-gray-600">
+                                    <i class="bi bi-printer"></i> Print
+                                </button>
+                                <button onclick="exportReportCSV()" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
+                                    <i class="bi bi-file-earmark-excel"></i> Export CSV
+                                </button>
+                            </div>
+                        </div>
+                        <div id="reportContent" class="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+                            <!-- Report content will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Page -->
+            <div id="settings-page" class="page-section">
+                <!-- System Settings - Admin Only -->
+                <div id="settingsSection" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mt-8 admin-only">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">System Settings</h3>
+                    
+                    <form id="settingsForm" class="space-y-6">
+                        <!-- General Settings -->
+                        <div class="border dark:border-gray-700 rounded-lg p-4">
+                            <h4 class="font-bold text-gray-800 dark:text-white mb-3">General Settings</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-gray-700 dark:text-gray-300 mb-1">Company Name</label>
+                                    <input type="text" id="companyName" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 dark:text-gray-300 mb-1">Currency Symbol</label>
+                                    <input type="text" id="currencySymbol" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="₹">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 dark:text-gray-300 mb-1">Items Per Page</label>
+                                    <select id="itemsPerPage" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="20">20</option>
+                                        <option value="50">50</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Security Settings -->
+                        <div class="border dark:border-gray-700 rounded-lg p-4">
+                            <h4 class="font-bold text-gray-800 dark:text-white mb-3">Security Settings</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-gray-700 dark:text-gray-300 mb-1">Session Timeout (minutes)</label>
+                                    <input type="number" id="sessionTimeout" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" min="5" max="120">
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="requireStrongPasswords" class="mr-2">
+                                    <label class="text-gray-700 dark:text-gray-300">Require Strong Passwords</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                            Save Settings
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Backup & Restore Section - Admin Only -->
+                <div id="backupSection" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mt-8 admin-only">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Backup & Restore</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Backup -->
+                        <div class="border dark:border-gray-700 rounded-lg p-4">
+                            <h4 class="font-bold text-gray-800 dark:text-white mb-3">Backup Data</h4>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">Create a backup of all your data that you can download and save.</p>
+                            <button onclick="createBackup()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                                <i class="bi bi-download"></i> Create & Download Backup
+                            </button>
+                        </div>
+                        
+                        <!-- Restore -->
+                        <div class="border dark:border-gray-700 rounded-lg p-4">
+                            <h4 class="font-bold text-gray-800 dark:text-white mb-3">Restore Data</h4>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">Restore your data from a previously created backup file.</p>
+                            <div class="space-y-3">
+                                <input type="file" id="restoreFile" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" accept=".json">
+                                <button onclick="restoreBackup()" class="w-full bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600">
+                                    <i class="bi bi-upload"></i> Restore from Backup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
